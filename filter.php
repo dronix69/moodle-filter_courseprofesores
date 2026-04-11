@@ -189,7 +189,9 @@ class filter_courseprofesores extends moodle_text_filter
         if (empty($records)) {
             $parentcontext = $coursecontext->get_parent_context();
             while ($parentcontext && empty($records)) {
-                $records = $this->get_profesores_from_context($parentcontext, $relevantroles);
+                if (has_capability('filter/courseprofesores:viewprofesores', $parentcontext)) {
+                    $records = $this->get_profesores_from_context($parentcontext, $relevantroles);
+                }
                 if ($parentcontext->id == context_system::instance()->id) {
                     break;
                 }
