@@ -26,6 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['filtername'] = 'Course Profesores';
 $string['pluginname'] = 'Course Profesores';
+$string['courseprofesores:viewprofesores'] = 'Can view the list of teachers in the course';
 $string['privacy:metadata'] = 'The Course Profesores filter does not store any personal data. It only reads existing user data to display course profesores.';
 
 $string['role_editingteacher'] = '{$a}';

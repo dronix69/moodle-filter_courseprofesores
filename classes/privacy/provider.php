@@ -35,7 +35,7 @@ use core_privacy\local\legacy_polyfill;
 /**
  * Privacy Subsystem for filter_courseprofesores implementing null_provider.
  *
- * @copyright  2026 Your Name
+ * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements null_provider {

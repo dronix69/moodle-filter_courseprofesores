@@ -168,34 +168,19 @@ class filter_courseprofesores extends moodle_text_filter
             return [];
         }
 
-        list($rolesql, $roleparams) = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
+        // Try to get teachers from the course context first.
+        $records = $this->get_profesores_from_context($coursecontext, $relevantroles);
 
-        $sql = "SELECT u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
-                       u.username, u.department, u.institution,
-                       r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
-                  FROM {role_assignments} ra
-                  JOIN {user} u ON u.id = ra.userid
-                  JOIN {role} r ON r.id = ra.roleid
-                 WHERE ra.contextid = :contextid
-                   AND ra.roleid $rolesql
-                   AND u.deleted = 0
-              ORDER BY r.sortorder ASC, u.lastname ASC, u.firstname ASC";
-
-        $params = array_merge(['contextid' => $coursecontext->id], $roleparams);
-
-        $records = $DB->get_records_sql($sql, $params);
-
-        // If no teachers found in course context, check parent contexts (e.g. category or system).
+        // If no teachers found in course context, check parent contexts (e.g. category or system) in bulk.
         if (empty($records)) {
-            $parentcontext = $coursecontext->get_parent_context();
-            while ($parentcontext && empty($records)) {
-                if (has_capability('filter/courseprofesores:viewprofesores', $parentcontext)) {
-                    $records = $this->get_profesores_from_context($parentcontext, $relevantroles);
-                }
-                if ($parentcontext->id == context_system::instance()->id) {
-                    break;
-                }
-                $parentcontext = $parentcontext->get_parent_context();
+            $parentcontextids = $coursecontext->get_parent_context_ids();
+            // $parentcontextids is [systemid, ..., categoryid, coursecontextid].
+            // We want to check from course upwards, excluding course itself.
+            $parentcontextids = array_reverse($parentcontextids);
+            array_shift($parentcontextids); // Remove the course context id.
+
+            if (!empty($parentcontextids)) {
+                $records = $this->get_best_profesores_from_parents($parentcontextids, $relevantroles);
             }
         }
 
@@ -266,6 +251,57 @@ class filter_courseprofesores extends moodle_text_filter
         $params = array_merge(['contextid' => $context->id], $roleparams);
 
         return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Get the best set of profesores from a list of parent contexts in bulk.
+     *
+     * @param array $parentcontextids Array of context IDs to check.
+     * @param array $relevantroles Array of relevant role IDs.
+     * @return array Array of records from the closest context that has teachers.
+     */
+    protected function get_best_profesores_from_parents($parentcontextids, $relevantroles)
+    {
+        global $DB;
+
+        list($ctxsql, $ctxparams) = $DB->get_in_or_equal($parentcontextids, SQL_PARAMS_NAMED);
+        list($rolesql, $roleparams) = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
+
+        $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
+                       u.username, u.department, u.institution,
+                       r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
+                  FROM {role_assignments} ra
+                  JOIN {user} u ON u.id = ra.userid
+                  JOIN {role} r ON r.id = ra.roleid
+                 WHERE ra.contextid $ctxsql
+                   AND ra.roleid $rolesql
+                   AND u.deleted = 0
+              ORDER BY r.sortorder ASC, u.lastname ASC, u.firstname ASC";
+
+        $params = array_merge($ctxparams, $roleparams);
+        $allrecords = $DB->get_records_sql($sql, $params);
+
+        if (empty($allrecords)) {
+            return [];
+        }
+
+        // Group by context for easy retrieval.
+        $groupedbycontext = [];
+        foreach ($allrecords as $record) {
+            $groupedbycontext[$record->contextid][$record->id] = $record;
+        }
+
+        // Iterate through parents in order (closest first) and return the first one that matches and has capability.
+        foreach ($parentcontextids as $pid) {
+            if (isset($groupedbycontext[$pid])) {
+                $context = context::instance_by_id($pid);
+                if (has_capability('filter/courseprofesores:viewprofesores', $context)) {
+                    return $groupedbycontext[$pid];
+                }
+            }
+        }
+
+        return [];
     }
 
     /**
@@ -341,15 +377,26 @@ class filter_courseprofesores extends moodle_text_filter
                 }
 
                 if (self::$settingscache['showmessagelink']) {
-                    $messagelink = new moodle_url('/message/index.php', ['id' => $user->id]);
+                    // Messaging check optimization:
+                    // 1. check if global messaging is enabled (static cache for performance).
+                    // 2. ensure we aren't messaging ourselves.
+                    // 3. then call can_send_message (still an N+1, but more guarded).
+                    static $messagingenabled = null;
+                    if ($messagingenabled === null) {
+                        global $CFG;
+                        $messagingenabled = !empty($CFG->messaging);
+                    }
 
-                    if (\core_message\api::can_send_message($USER->id, $user->id)) {
-                        $html .= '<div class="profesor-actions">';
-                        $html .= '<a href="' . $messagelink->out(false) . '" class="profesor-action-link message-link" title="' . get_string('sendmessage', 'filter_courseprofesores') . '">';
-                        $html .= '<i class="icon fa fa-envelope fa-fw" aria-hidden="true"></i> ';
-                        $html .= get_string('sendmessage', 'filter_courseprofesores');
-                        $html .= '</a>';
-                        $html .= '</div>';
+                    if ($messagingenabled && $USER->id != $user->id) {
+                        if (\core_message\api::can_send_message($USER->id, $user->id)) {
+                            $messagelink = new moodle_url('/message/index.php', ['id' => $user->id]);
+                            $html .= '<div class="profesor-actions">';
+                            $html .= '<a href="' . $messagelink->out(false) . '" class="profesor-action-link message-link" title="' . get_string('sendmessage', 'filter_courseprofesores') . '">';
+                            $html .= '<i class="icon fa fa-envelope fa-fw" aria-hidden="true"></i> ';
+                            $html .= get_string('sendmessage', 'filter_courseprofesores');
+                            $html .= '</a>';
+                            $html .= '</div>';
+                        }
                     }
                 }
 
