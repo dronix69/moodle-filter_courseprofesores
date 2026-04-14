@@ -23,12 +23,12 @@ Simplemente escribe `{courseprofesores}` en cualquier parte del contenido de tu 
 
 1. Descarga el plugin o clónalo desde el repositorio:
    ```bash
-   git clone https://github.com/dronix69/filter_courseprofesores.git courseprofesores
+   git clone https://github.com/dronix69/filter_courseprofesores.git
    ```
 
-2. Coloca la carpeta `courseprofesores` en el directorio `filter` de tu Moodle:
+2. Coloca la carpeta `filter_courseprofesores` en el directorio `filter` de tu Moodle:
    ```
-   /ruta/a/moodle/filter/courseprofesores/
+   /ruta/a/moodle/filter/filter_courseprofesores/
    ```
 
 2. Inicia sesión en Moodle como administrador.
@@ -144,4 +144,4 @@ El filtro genera HTML con la siguiente estructura:
 Este plugin es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la Licencia Pública General GNU publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
 
 ---
-**Repositorio oficial:** [moodle-filter_courseprofesores](https://github.com/dronix69/moodle-filter_courseprofesores)
+**Repositorio oficial:** [filter_courseprofesores](https://github.com/dronix69/filter_courseprofesores)
