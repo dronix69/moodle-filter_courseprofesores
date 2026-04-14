@@ -77,7 +77,7 @@ if ($ADMIN->fulltree) {
         'filter_courseprofesores/rolesincluded',
         get_string('rolesincluded', 'filter_courseprofesores'),
         get_string('rolesincluded_desc', 'filter_courseprofesores'),
-        ['editingteacher' => 1, 'teacher' => 1, 'manager' => 0],
+        ['editingteacher' => 1, 'teacher' => 1, 'manager' => 1],
         $roleoptions
     ));
 

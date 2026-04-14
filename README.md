@@ -1,4 +1,5 @@
 # Filtro Profesores del Curso para Moodle 4+
+**Repositorio:** `moodle-filter_courseprofesores`
 
 Un plugin de filtro para Moodle que reemplaza la etiqueta `{courseprofesores}` con una lista visualmente atractiva de los Profesores del curso, agrupados por rol. Cada tarjeta de profesores muestra su avatar, un enlace directo a su perfil y un enlace para enviar mensajes.
 
@@ -20,7 +21,12 @@ Simplemente escribe `{courseprofesores}` en cualquier parte del contenido de tu 
 
 ## Instalación
 
-1. Descarga el plugin y extráelo en el directorio `filter` de tu Moodle:
+1. Descarga el plugin o clónalo desde el repositorio:
+   ```bash
+   git clone https://github.com/dronix69/moodle-filter_courseprofesores.git courseprofesores
+   ```
+
+2. Coloca la carpeta `courseprofesores` en el directorio `filter` de tu Moodle:
    ```
    /ruta/a/moodle/filter/courseprofesores/
    ```
@@ -136,3 +142,6 @@ El filtro genera HTML con la siguiente estructura:
 ## Licencia
 
 Este plugin es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la Licencia Pública General GNU publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
+
+---
+**Repositorio oficial:** [moodle-filter_courseprofesores](https://github.com/dronix69/moodle-filter_courseprofesores)
