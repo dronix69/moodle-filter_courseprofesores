@@ -314,7 +314,7 @@ class filter_courseprofesores extends moodle_text_filter
      */
     protected function render_profesores($profesores, $course)
     {
-        global $USER, $PAGE;
+        global $USER, $PAGE, $DB;
 
         $this->load_settings();
 
@@ -325,6 +325,53 @@ class filter_courseprofesores extends moodle_text_filter
         }
 
         $html = '<div class="' . $containerclass . '">';
+
+        // Bulk query: collect all profesor IDs and get unread message counts in one query.
+        // This avoids N+1 queries inside the loop (Moodle best practice).
+        static $messagingenabled = null;
+        if ($messagingenabled === null) {
+            global $CFG;
+            $messagingenabled = !empty($CFG->messaging);
+        }
+
+        $unreadcounts = [];
+        if ($messagingenabled && self::$settingscache['showmessagelink']) {
+            $allprofesorids = [];
+            foreach ($profesores as $rolegroup) {
+                foreach ($rolegroup['users'] as $profesor) {
+                    if ($profesor['id'] != $USER->id) {
+                        $allprofesorids[] = $profesor['id'];
+                    }
+                }
+            }
+
+            if (!empty($allprofesorids)) {
+                list($insql, $inparams) = $DB->get_in_or_equal($allprofesorids, SQL_PARAMS_NAMED, 'prof');
+                $sql = "SELECT mcm2.userid AS profesorid, COUNT(m.id) AS unreadcount
+                          FROM {messages} m
+                          JOIN {message_conversation_members} mcm1
+                            ON mcm1.conversationid = m.conversationid AND mcm1.userid = :studentid
+                          JOIN {message_conversation_members} mcm2
+                            ON mcm2.conversationid = m.conversationid AND mcm2.userid $insql
+                         WHERE m.useridfrom = :senderid
+                           AND NOT EXISTS (
+                               SELECT 1 FROM {message_user_actions} mua
+                                WHERE mua.messageid = m.id
+                                  AND mua.userid = mcm2.userid
+                                  AND mua.action = :readaction
+                           )
+                      GROUP BY mcm2.userid";
+                $params = array_merge($inparams, [
+                    'studentid'  => $USER->id,
+                    'senderid'   => $USER->id,
+                    'readaction' => \core_message\api::MESSAGE_ACTION_READ,
+                ]);
+                $records = $DB->get_records_sql($sql, $params);
+                foreach ($records as $record) {
+                    $unreadcounts[$record->profesorid] = (int) $record->unreadcount;
+                }
+            }
+        }
 
         foreach ($profesores as $rolegroup) {
             if (empty($rolegroup['users'])) {
@@ -344,7 +391,13 @@ class filter_courseprofesores extends moodle_text_filter
 
                 $profileurl = new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $course->id]);
 
+                $unreadcount = $unreadcounts[$user->id] ?? 0;
+
                 $html .= '<div class="profesor-card">';
+
+                if ($unreadcount > 0) {
+                    $html .= '<span class="profesor-unread-badge" title="' . get_string('unreadmessages', 'filter_courseprofesores') . '">' . $unreadcount . '</span>';
+                }
 
                 if (self::$settingscache['showavatars']) {
                     $userpicture = new user_picture($user);
@@ -378,16 +431,6 @@ class filter_courseprofesores extends moodle_text_filter
                 }
 
                 if (self::$settingscache['showmessagelink']) {
-                    // Messaging check optimization:
-                    // 1. check if global messaging is enabled (static cache for performance).
-                    // 2. ensure we aren't messaging ourselves.
-                    // 3. then call can_send_message (still an N+1, but more guarded).
-                    static $messagingenabled = null;
-                    if ($messagingenabled === null) {
-                        global $CFG;
-                        $messagingenabled = !empty($CFG->messaging);
-                    }
-
                     if ($messagingenabled && $USER->id != $user->id) {
                         if (\core_message\api::can_send_message($USER->id, $user->id)) {
                             $messagelink = new moodle_url('/message/index.php', ['id' => $user->id]);

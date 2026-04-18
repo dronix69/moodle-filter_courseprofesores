@@ -35,6 +35,7 @@ $string['role_manager'] = '{$a}';
 
 $string['viewprofile'] = 'Ver perfil';
 $string['sendmessage'] = 'Enviar mensaje';
+$string['unreadmessages'] = 'Mensajes no leídos';
 $string['viewparticipants'] = 'Ver todos los participantes';
 
 $string['settingsheading'] = 'Configuración del filtro Profesores del Curso';
