@@ -103,12 +103,6 @@ class filter_courseprofesores extends moodle_text_filter
 
         $coursecontext = context_course::instance($course->id);
 
-        // Security check: Check if the user has permission to see the profesores list.
-        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext)) {
-            $text = str_replace('{courseprofesores}', '', $text);
-            return $text;
-        }
-
         $profesores = $this->get_course_profesores($course->id, $coursecontext);
 
         if (empty($profesores)) {
@@ -282,13 +276,10 @@ class filter_courseprofesores extends moodle_text_filter
             $groupedbycontext[$record->contextid][$record->id] = $record;
         }
 
-        // Iterate through parents in order (closest first) and return the first one that matches and has capability.
+        // Iterate through parents in order (closest first) and return the first one that matches.
         foreach ($parentcontextids as $pid) {
             if (isset($groupedbycontext[$pid])) {
-                $context = context::instance_by_id($pid);
-                if (has_capability('filter/courseprofesores:viewprofesores', $context)) {
-                    return $groupedbycontext[$pid];
-                }
+                return $groupedbycontext[$pid];
             }
         }
 
