@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026042401;
+$plugin->version = 2026042402;
 $plugin->requires = 2022112800;
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity = MATURITY_STABLE;
