@@ -16,10 +16,6 @@
 
 namespace filter_courseprofesores;
 
-use core\context\system as context_system;
-
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for the courseprofesores filter.
  *
@@ -39,7 +35,7 @@ final class filter_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-        $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), 1, FORMAT_HTML, []);
+        $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), [1], FORMAT_HTML, []);
     }
 
     /**
@@ -87,6 +83,8 @@ final class filter_test extends \advanced_testcase {
     public function test_tag_replaced_with_profesores(): void {
         global $COURSE;
 
+        $this->resetAfterTest();
+
         $course = $this->getDataGenerator()->create_course(['fullname' => 'Test Course']);
         $teacher = $this->getDataGenerator()->create_user([
             'firstname' => 'John',
@@ -118,6 +116,8 @@ final class filter_test extends \advanced_testcase {
      */
     public function test_profesores_grouped_by_role(): void {
         global $COURSE;
+
+        $this->resetAfterTest(true);
 
         $course = $this->getDataGenerator()->create_course();
 
@@ -155,10 +155,13 @@ final class filter_test extends \advanced_testcase {
         global $COURSE;
 
         $course = $this->getDataGenerator()->create_course();
-        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Deleted', 'deleted' => 1]);
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Deleted', 'deleted' => 0]);
 
         $student = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'teacher');
+
+        delete_user($teacher);
 
         $this->setUser($student);
 
@@ -233,6 +236,8 @@ final class filter_test extends \advanced_testcase {
     public function test_profile_link_included(): void {
         global $COURSE;
 
+        $this->resetAfterTest(true);
+
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
@@ -268,7 +273,10 @@ final class filter_test extends \advanced_testcase {
         $text = 'Profesores: {courseprofesores} End';
         $context = \context_course::instance($course->id);
 
+        $originalcourse = $COURSE;
+        $COURSE = $course;
         $result = $this->filter->filter($text, ['context' => $context]);
+        $COURSE = $originalcourse;
 
         $this->assertStringNotContainsString('{courseprofesores}', $result);
         $this->assertStringContainsString('Profesores:  End', $result);
