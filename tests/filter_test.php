@@ -40,7 +40,7 @@ final class filter_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-        $this->filter = new \filter_courseprofesores();
+        $this->filter = new text_filter(\context_system::instance(), []);
     }
 
     /**
@@ -269,10 +269,7 @@ final class filter_test extends \advanced_testcase {
         $text = 'Profesores: {courseprofesores} End';
         $context = \context_course::instance($course->id);
 
-        $originalcourse = $COURSE;
-        $COURSE = $course;
         $result = $this->filter->filter($text, ['context' => $context]);
-        $COURSE = $originalcourse;
 
         $this->assertStringNotContainsString('{courseprofesores}', $result);
         $this->assertStringContainsString('Profesores:  End', $result);
