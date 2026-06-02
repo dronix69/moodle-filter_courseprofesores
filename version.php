@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2026051301;       // Plugin release date (YYYYMMDDXX).
-$plugin->requires  = 2022112800;       // Moodle 4.1+.
+$plugin->requires  = 2022112800;       
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '2.0.0';          // Major bump: Moodle 5.0+ compatible namespaced architecture.
