@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026051301;       // Plugin release date (YYYYMMDDXX).
-$plugin->requires  = 2022112800;       
+$plugin->version   = 2026060307;       // Plugin release date (YYYYMMDDXX).
+$plugin->requires  = 2024100700;       // Requires Moodle 4.5+ (MDL-82427).
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.0.0';          // Major bump: Moodle 5.0+ compatible namespaced architecture.
+$plugin->release   = '2.0.7';          // Added: pink accent and card color theme option.
 $plugin->dependencies = [];

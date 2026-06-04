@@ -30,12 +30,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Handle namespaced base class compatibility for Moodle < 4.5.
-if (!class_exists('\core_filters\text_filter')) {
-    class_alias('moodle_text_filter', '\core_filters\text_filter');
-}
-
-// The autoloader will already have loaded classes/text_filter.php.
-// This alias ensures backward compatibility with Moodle 4.1–4.4
-// which expect a global class named filter_courseprofesores.
+// This alias ensures backward compatibility with legacy loaders or third-party plugins
+// that still expect the global class name 'filter_courseprofesores'.
+// Moodle 4.5+ and 5.0+ natively use the namespaced \filter_courseprofesores\text_filter.
 class_alias(\filter_courseprofesores\text_filter::class, 'filter_courseprofesores');
+

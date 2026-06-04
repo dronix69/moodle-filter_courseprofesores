@@ -69,9 +69,7 @@ if ($ADMIN->fulltree) {
     $roleoptions = [];
     if ($roles = get_all_roles()) {
         foreach ($roles as $role) {
-            if (in_array($role->shortname, ['editingteacher', 'teacher', 'manager'])) {
-                $roleoptions[$role->shortname] = role_get_name($role, context_system::instance());
-            }
+            $roleoptions[$role->shortname] = role_get_name($role, context_system::instance());
         }
     }
 
@@ -95,5 +93,35 @@ if ($ADMIN->fulltree) {
         '',
         'cards',
         $styleoptions
+    ));
+
+    $coloroptions = [
+        'default' => get_string('color_default', 'filter_courseprofesores'),
+        'orange' => get_string('color_orange', 'filter_courseprofesores'),
+        'blue' => get_string('color_blue', 'filter_courseprofesores'),
+        'pink' => get_string('color_pink', 'filter_courseprofesores'),
+    ];
+
+    $settings->add(new admin_setting_configselect(
+        'filter_courseprofesores/accentcolor',
+        get_string('accentcolor', 'filter_courseprofesores'),
+        get_string('accentcolor_desc', 'filter_courseprofesores'),
+        'default',
+        $coloroptions
+    ));
+
+    $cardcoloroptions = [
+        'default' => get_string('cardcolor_default', 'filter_courseprofesores'),
+        'orange' => get_string('cardcolor_orange', 'filter_courseprofesores'),
+        'blue' => get_string('cardcolor_blue', 'filter_courseprofesores'),
+        'pink' => get_string('cardcolor_pink', 'filter_courseprofesores'),
+    ];
+
+    $settings->add(new admin_setting_configselect(
+        'filter_courseprofesores/cardcolor',
+        get_string('cardcolor', 'filter_courseprofesores'),
+        get_string('cardcolor_desc', 'filter_courseprofesores'),
+        'default',
+        $cardcoloroptions
     ));
 }

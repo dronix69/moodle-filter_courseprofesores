@@ -82,6 +82,16 @@ class text_filter extends \core_filters\text_filter {
                 '',
                 get_config('filter_courseprofesores', 'displaystyle') ?: 'cards'
             ),
+            'accentcolor'          => preg_replace(
+                '/[^a-z0-9_-]/i',
+                '',
+                get_config('filter_courseprofesores', 'accentcolor') ?: 'default'
+            ),
+            'cardcolor'            => preg_replace(
+                '/[^a-z0-9_-]/i',
+                '',
+                get_config('filter_courseprofesores', 'cardcolor') ?: 'default'
+            ),
             'rolesincluded'        => $rolesarray,
         ];
     }
@@ -119,6 +129,12 @@ class text_filter extends \core_filters\text_filter {
         }
 
         $coursecontext = \context_course::instance($course->id);
+
+        // Check permission.
+        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext)) {
+            return str_replace('{courseprofesores}', '', $text);
+        }
+
         $profesores    = $this->get_course_profesores($course->id, $coursecontext);
 
         if (empty($profesores)) {
@@ -227,7 +243,8 @@ class text_filter extends \core_filters\text_filter {
 
         [$rolesql, $roleparams] = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                       u.middlename, u.alternatename, u.email, u.picture, u.imagealt,
                        u.username, u.department, u.institution,
                        r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
                   FROM {role_assignments} ra
@@ -236,9 +253,14 @@ class text_filter extends \core_filters\text_filter {
                  WHERE ra.contextid = :contextid
                    AND ra.roleid $rolesql
                    AND u.deleted = :deleted
+                   AND u.suspended = :suspended
               ORDER BY r.sortorder ASC, u.lastname ASC, u.firstname ASC";
 
-        $params = array_merge(['contextid' => $context->id, 'deleted' => 0], $roleparams);
+        $params = array_merge([
+            'contextid' => $context->id,
+            'deleted' => 0,
+            'suspended' => 0,
+        ], $roleparams);
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -255,7 +277,8 @@ class text_filter extends \core_filters\text_filter {
         [$ctxsql, $ctxparams]   = $DB->get_in_or_equal($parentcontextids, SQL_PARAMS_NAMED);
         [$rolesql, $roleparams] = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
+        $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                       u.middlename, u.alternatename, u.email, u.picture, u.imagealt,
                        u.username, u.department, u.institution,
                        r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
                   FROM {role_assignments} ra
@@ -264,9 +287,13 @@ class text_filter extends \core_filters\text_filter {
                  WHERE ra.contextid $ctxsql
                    AND ra.roleid $rolesql
                    AND u.deleted = :deleted
+                   AND u.suspended = :suspended
               ORDER BY r.sortorder ASC, u.lastname ASC, u.firstname ASC";
 
-        $params     = array_merge($ctxparams, $roleparams, ['deleted' => 0]);
+        $params     = array_merge($ctxparams, $roleparams, [
+            'deleted' => 0,
+            'suspended' => 0,
+        ]);
         $allrecords = $DB->get_records_sql($sql, $params);
 
         if (empty($allrecords)) {
@@ -300,9 +327,17 @@ class text_filter extends \core_filters\text_filter {
         $this->load_settings();
 
         $displaystyle   = self::$settingscache['displaystyle'];
+        $accentcolor    = self::$settingscache['accentcolor'];
+        $cardcolor      = self::$settingscache['cardcolor'];
         $containerclass = 'filter-courseprofesores-container';
         if ($displaystyle !== 'cards') {
             $containerclass .= ' display-style-' . $displaystyle;
+        }
+        if ($accentcolor !== 'default') {
+            $containerclass .= ' accent-color-' . $accentcolor;
+        }
+        if ($cardcolor !== 'default') {
+            $containerclass .= ' card-color-' . $cardcolor;
         }
 
         $html = '<div class="' . $containerclass . '">';
@@ -313,7 +348,8 @@ class text_filter extends \core_filters\text_filter {
             $messagingenabled = !empty($CFG->messaging);
         }
 
-        $unreadcounts = [];
+        $unreadreceived = [];
+        $unreadsent = [];
         if ($messagingenabled && self::$settingscache['showmessagelink']) {
             $allprofesorids = [];
             foreach ($profesores as $rolegroup) {
@@ -326,28 +362,39 @@ class text_filter extends \core_filters\text_filter {
 
             if (!empty($allprofesorids)) {
                 [$insql, $inparams] = $DB->get_in_or_equal($allprofesorids, SQL_PARAMS_NAMED, 'prof');
-                $sql = "SELECT mcm2.userid AS profesorid, COUNT(m.id) AS unreadcount
+                $sql = "SELECT mcm2.userid AS profesorid,
+                               SUM(CASE WHEN m.useridfrom = mcm2.userid THEN 1 ELSE 0 END) AS count_received,
+                               SUM(CASE WHEN m.useridfrom = mcm1.userid THEN 1 ELSE 0 END) AS count_sent
                           FROM {messages} m
                           JOIN {message_conversation_members} mcm1
                             ON mcm1.conversationid = m.conversationid AND mcm1.userid = :studentid
                           JOIN {message_conversation_members} mcm2
                             ON mcm2.conversationid = m.conversationid AND mcm2.userid $insql
-                         WHERE m.useridfrom = :senderid
-                           AND NOT EXISTS (
-                               SELECT 1 FROM {message_user_actions} mua
-                                WHERE mua.messageid = m.id
-                                  AND mua.userid = mcm2.userid
-                                  AND mua.action = :readaction
-                           )
+                         WHERE (
+                             (m.useridfrom = mcm2.userid AND NOT EXISTS (
+                                 SELECT 1 FROM {message_user_actions} mua
+                                  WHERE mua.messageid = m.id
+                                    AND mua.userid = mcm1.userid
+                                    AND mua.action = :readaction1
+                             ))
+                             OR
+                             (m.useridfrom = mcm1.userid AND NOT EXISTS (
+                                 SELECT 1 FROM {message_user_actions} mua
+                                  WHERE mua.messageid = m.id
+                                    AND mua.userid = mcm2.userid
+                                    AND mua.action = :readaction2
+                             ))
+                         )
                       GROUP BY mcm2.userid";
                 $params = array_merge($inparams, [
-                    'studentid'  => $USER->id,
-                    'senderid'   => $USER->id,
-                    'readaction' => \core_message\api::MESSAGE_ACTION_READ,
+                    'studentid'   => $USER->id,
+                    'readaction1' => \core_message\api::MESSAGE_ACTION_READ,
+                    'readaction2' => \core_message\api::MESSAGE_ACTION_READ,
                 ]);
                 $records = $DB->get_records_sql($sql, $params);
                 foreach ($records as $record) {
-                    $unreadcounts[$record->profesorid] = (int) $record->unreadcount;
+                    $unreadreceived[$record->profesorid] = (int) $record->count_received;
+                    $unreadsent[$record->profesorid] = (int) $record->count_sent;
                 }
             }
         }
@@ -358,7 +405,12 @@ class text_filter extends \core_filters\text_filter {
             }
 
             $escapedrolename = s($rolegroup['name']);
-            $roletitle = get_string('role_' . $rolegroup['shortname'], 'filter_courseprofesores', $escapedrolename);
+            $stringkey = 'role_' . $rolegroup['shortname'];
+            if (get_string_manager()->string_exists($stringkey, 'filter_courseprofesores')) {
+                $roletitle = get_string($stringkey, 'filter_courseprofesores', $escapedrolename);
+            } else {
+                $roletitle = $escapedrolename;
+            }
 
             $html .= '<div class="profesores-role-group">';
             $html .= '<h4 class="profesores-role-title">' . $roletitle . '</h4>';
@@ -367,15 +419,27 @@ class text_filter extends \core_filters\text_filter {
             foreach ($rolegroup['users'] as $profesor) {
                 $user       = (object) $profesor;
                 $profileurl = new \moodle_url('/user/view.php', ['id' => $user->id, 'course' => $course->id]);
-                $unreadcount = $unreadcounts[$user->id] ?? 0;
+                $countreceived = $unreadreceived[$user->id] ?? 0;
+                $countsent = $unreadsent[$user->id] ?? 0;
 
                 $html .= '<div class="profesor-card">';
 
-                if ($unreadcount > 0) {
-                    $html .= '<div class="profesor-unread-indicator" title="' .
-                        get_string('unreadmessages', 'filter_courseprofesores') . '">';
-                    $html .= '<i class="icon fa fa-comment-o fa-fw" aria-hidden="true"></i>';
-                    $html .= '<span class="unread-count">' . $unreadcount . '</span>';
+                if ($countreceived > 0 || $countsent > 0) {
+                    $html .= '<div class="profesor-badges">';
+                    if ($countreceived > 0) {
+                        $html .= '<div class="profesor-badge badge-received" title="' .
+                            get_string('unreadmessages_received', 'filter_courseprofesores') . '">';
+                        $html .= '<i class="icon fa fa-commenting-o fa-fw" aria-hidden="true"></i>';
+                        $html .= '<span class="badge-count">' . $countreceived . '</span>';
+                        $html .= '</div>';
+                    }
+                    if ($countsent > 0) {
+                        $html .= '<div class="profesor-badge badge-sent" title="' .
+                            get_string('unreadmessages_sent', 'filter_courseprofesores') . '">';
+                        $html .= '<i class="icon fa fa-paper-plane-o fa-fw" aria-hidden="true"></i>';
+                        $html .= '<span class="badge-count">' . $countsent . '</span>';
+                        $html .= '</div>';
+                    }
                     $html .= '</div>';
                 }
 

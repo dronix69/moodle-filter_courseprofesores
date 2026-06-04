@@ -18,20 +18,17 @@ namespace filter_courseprofesores;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-require_once($CFG->dirroot . '/filter/courseprofesores/filter.php');
-
 /**
  * Unit tests for the courseprofesores filter.
  *
  * @package    filter_courseprofesores
  * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \filter_courseprofesores
+ * @covers     \filter_courseprofesores\text_filter
  * @group      filter_courseprofesores
  */
 final class filter_test extends \advanced_testcase {
-    /** @var \filter_courseprofesores The filter instance. */
+    /** @var \filter_courseprofesores\text_filter The filter instance. */
     protected $filter;
 
     /**
@@ -40,7 +37,7 @@ final class filter_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-        $this->filter = new \filter_courseprofesores();
+        $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), 1, FORMAT_HTML, []);
     }
 
     /**
