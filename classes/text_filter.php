@@ -130,8 +130,12 @@ class text_filter extends \core_filters\text_filter {
 
         $coursecontext = \context_course::instance($course->id);
 
-        // Check permission.
-        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext)) {
+        // Check if user can view profesores - allow anyone with the specific capability
+        // or any user enrolled in the course. This ensures students can always see
+        // their teachers even if the capability hasn't been propagated to the
+        // student role due to a previous upgrade gap.
+        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
+            !is_enrolled($coursecontext)) {
             return str_replace('{courseprofesores}', '', $text);
         }
 

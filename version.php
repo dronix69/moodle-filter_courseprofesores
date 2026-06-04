@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026060307;       // Plugin release date (YYYYMMDDXX).
+$plugin->version   = 2026060308;       // Plugin release date (YYYYMMDDXX).
 $plugin->requires  = 2024100700;       // Requires Moodle 4.5+ (MDL-82427).
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.0.7';          // Added: pink accent and card color theme option.
+$plugin->release   = '2.0.8';          // Fixed: student role now sees profesor cards.
 $plugin->dependencies = [];
