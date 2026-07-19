@@ -28,10 +28,7 @@
  * @deprecated since Moodle 4.5 - Use \filter_courseprofesores\text_filter instead.
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 // This alias ensures backward compatibility with legacy loaders or third-party plugins
 // that still expect the global class name 'filter_courseprofesores'.
 // Moodle 4.5+ and 5.0+ natively use the namespaced \filter_courseprofesores\text_filter.
 class_alias(\filter_courseprofesores\text_filter::class, 'filter_courseprofesores');
-

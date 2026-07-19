@@ -39,21 +39,20 @@ namespace filter_courseprofesores;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \core_filters\text_filter {
+    /** @var array Instance-level cache of profesores per course. */
+    protected array $profesorescache = [];
 
-    /** @var array Request-level cache of profesores per course. */
-    protected static array $profesorescache = [];
+    /** @var array|null Instance-level cache of plugin settings. */
+    protected ?array $settingscache = null;
 
-    /** @var array|null Request-level cache of plugin settings. */
-    protected static ?array $settingscache = null;
-
-    /** @var array|null Request-level cache of role lists. */
-    protected static ?array $rolecache = null;
+    /** @var array|null Instance-level cache of role lists. */
+    protected ?array $rolecache = null;
 
     /**
      * Load plugin settings into static cache.
      */
     protected function load_settings(): void {
-        if (self::$settingscache !== null) {
+        if ($this->settingscache !== null) {
             return;
         }
 
@@ -71,7 +70,7 @@ class text_filter extends \core_filters\text_filter {
             $rolesarray = ['editingteacher' => 1, 'teacher' => 1];
         }
 
-        self::$settingscache = [
+        $this->settingscache = [
             'showavatars'          => get_config('filter_courseprofesores', 'showavatars') !== '0',
             'showdepartment'       => get_config('filter_courseprofesores', 'showdepartment') !== '0',
             'showinstitution'      => get_config('filter_courseprofesores', 'showinstitution') !== '0',
@@ -134,8 +133,10 @@ class text_filter extends \core_filters\text_filter {
         // or any user enrolled in the course. This ensures students can always see
         // their teachers even if the capability hasn't been propagated to the
         // student role due to a previous upgrade gap.
-        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
-            !is_enrolled($coursecontext)) {
+        if (
+            !has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
+            !is_enrolled($coursecontext)
+        ) {
             return str_replace('{courseprofesores}', '', $text);
         }
 
@@ -160,26 +161,26 @@ class text_filter extends \core_filters\text_filter {
         global $DB;
 
         $cachekey = $courseid . '-' . $coursecontext->id;
-        if (isset(self::$profesorescache[$cachekey])) {
-            return self::$profesorescache[$cachekey];
+        if (isset($this->profesorescache[$cachekey])) {
+            return $this->profesorescache[$cachekey];
         }
 
         $this->load_settings();
 
         // Load roles once per request.
-        if (self::$rolecache === null) {
-            self::$rolecache = get_all_roles();
+        if ($this->rolecache === null) {
+            $this->rolecache = get_all_roles();
         }
 
         $relevantroles = [];
-        foreach (self::$rolecache as $role) {
-            if (!empty(self::$settingscache['rolesincluded'][$role->shortname])) {
+        foreach ($this->rolecache as $role) {
+            if (!empty($this->settingscache['rolesincluded'][$role->shortname])) {
                 $relevantroles[] = $role->id;
             }
         }
 
         if (empty($relevantroles)) {
-            self::$profesorescache[$cachekey] = [];
+            $this->profesorescache[$cachekey] = [];
             return [];
         }
 
@@ -204,7 +205,7 @@ class text_filter extends \core_filters\text_filter {
             $roleshortname = $record->roleshortname;
 
             if (!isset($grouped[$roleshortname])) {
-                $role = self::$rolecache[$record->roleid];
+                $role = $this->rolecache[$record->roleid];
                 $grouped[$roleshortname] = [
                     'shortname' => $roleshortname,
                     'name'      => role_get_name($role, $coursecontext),
@@ -218,12 +219,16 @@ class text_filter extends \core_filters\text_filter {
                     'id'          => $record->id,
                     'firstname'   => $record->firstname,
                     'lastname'    => $record->lastname,
-                    'email'       => $record->email,
-                    'picture'     => $record->picture,
-                    'imagealt'    => $record->imagealt,
-                    'username'    => $record->username,
-                    'department'  => $record->department,
-                    'institution' => $record->institution,
+                    'firstnamephonetic' => $record->firstnamephonetic,
+                    'lastnamephonetic'  => $record->lastnamephonetic,
+                    'middlename'        => $record->middlename,
+                    'alternatename'     => $record->alternatename,
+                    'email'             => $record->email,
+                    'picture'           => $record->picture,
+                    'imagealt'          => $record->imagealt,
+                    'username'          => $record->username,
+                    'department'        => $record->department,
+                    'institution'       => $record->institution,
                     'fullname'    => fullname($record),
                 ];
             }
@@ -231,7 +236,7 @@ class text_filter extends \core_filters\text_filter {
 
         usort($grouped, fn($a, $b) => $a['sortorder'] - $b['sortorder']);
 
-        self::$profesorescache[$cachekey] = $grouped;
+        $this->profesorescache[$cachekey] = $grouped;
         return $grouped;
     }
 
@@ -330,9 +335,9 @@ class text_filter extends \core_filters\text_filter {
 
         $this->load_settings();
 
-        $displaystyle   = self::$settingscache['displaystyle'];
-        $accentcolor    = self::$settingscache['accentcolor'];
-        $cardcolor      = self::$settingscache['cardcolor'];
+        $displaystyle   = $this->settingscache['displaystyle'];
+        $accentcolor    = $this->settingscache['accentcolor'];
+        $cardcolor      = $this->settingscache['cardcolor'];
         $containerclass = 'filter-courseprofesores-container';
         if ($displaystyle !== 'cards') {
             $containerclass .= ' display-style-' . $displaystyle;
@@ -354,7 +359,7 @@ class text_filter extends \core_filters\text_filter {
 
         $unreadreceived = [];
         $unreadsent = [];
-        if ($messagingenabled && self::$settingscache['showmessagelink']) {
+        if ($messagingenabled && $this->settingscache['showmessagelink']) {
             $allprofesorids = [];
             foreach ($profesores as $rolegroup) {
                 foreach ($rolegroup['users'] as $profesor) {
@@ -447,7 +452,7 @@ class text_filter extends \core_filters\text_filter {
                     $html .= '</div>';
                 }
 
-                if (self::$settingscache['showavatars']) {
+                if ($this->settingscache['showavatars']) {
                     $userpicture        = new \user_picture($user);
                     $userpicture->size  = 1;
                     $pictureurl         = $userpicture->get_url($PAGE)->out(false);
@@ -463,21 +468,21 @@ class text_filter extends \core_filters\text_filter {
                 $html .= '<div class="profesor-info">';
                 $html .= '<a href="' . $profileurl->out(false) . '" class="profesor-name">' . s($user->fullname) . '</a>';
 
-                $showdetails = (self::$settingscache['showdepartment'] && !empty($user->department)) ||
-                    (self::$settingscache['showinstitution'] && !empty($user->institution));
+                $showdetails = ($this->settingscache['showdepartment'] && !empty($user->department)) ||
+                    ($this->settingscache['showinstitution'] && !empty($user->institution));
 
                 if ($showdetails) {
                     $details = [];
-                    if (self::$settingscache['showdepartment'] && !empty($user->department)) {
+                    if ($this->settingscache['showdepartment'] && !empty($user->department)) {
                         $details[] = s($user->department);
                     }
-                    if (self::$settingscache['showinstitution'] && !empty($user->institution)) {
+                    if ($this->settingscache['showinstitution'] && !empty($user->institution)) {
                         $details[] = s($user->institution);
                     }
                     $html .= '<div class="profesor-details">' . implode(', ', $details) . '</div>';
                 }
 
-                if (self::$settingscache['showmessagelink']) {
+                if ($this->settingscache['showmessagelink']) {
                     if ($messagingenabled && $USER->id != $user->id) {
                         if (\core_message\api::can_send_message($USER->id, $user->id)) {
                             $messagelink = new \moodle_url('/message/index.php', ['id' => $user->id]);
@@ -501,7 +506,7 @@ class text_filter extends \core_filters\text_filter {
             $html .= '</div>'; // End group.
         }
 
-        if (self::$settingscache['showparticipantslink']) {
+        if ($this->settingscache['showparticipantslink']) {
             $coursecontext = \context_course::instance($course->id);
             if (has_capability('moodle/course:viewparticipants', $coursecontext)) {
                 $participantsurl = new \moodle_url('/user/index.php', ['id' => $course->id]);
