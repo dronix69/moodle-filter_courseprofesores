@@ -277,6 +277,50 @@
     white-space: nowrap;
 }
 
+/* Online status / last access indicator */
+.filter-courseprofesores-container .profesor-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.filter-courseprofesores-container .profesor-status .icon {
+    font-size: 0.65rem;
+    margin: 0;
+    padding: 0;
+}
+
+.filter-courseprofesores-container .profesor-status.status-online {
+    color: #16a34a;
+}
+
+.filter-courseprofesores-container .profesor-status.status-online .icon {
+    animation: profesores-status-pulse 2s ease-in-out infinite;
+}
+
+.filter-courseprofesores-container .profesor-status.status-offline .icon {
+    color: var(--text-secondary);
+}
+
+@keyframes profesores-status-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-courseprofesores-container .profesor-status.status-online .icon {
+        animation: none;
+    }
+}
+
 .filter-courseprofesores-container .profesor-actions {
     display: flex;
     flex-wrap: wrap;

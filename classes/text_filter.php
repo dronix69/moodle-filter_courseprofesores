@@ -76,6 +76,7 @@ class text_filter extends \core_filters\text_filter {
             'showdepartment'       => get_config('filter_courseprofesores', 'showdepartment') !== '0',
             'showinstitution'      => get_config('filter_courseprofesores', 'showinstitution') !== '0',
             'showmessagelink'      => get_config('filter_courseprofesores', 'showmessagelink') !== '0',
+            'showonlinestatus'     => get_config('filter_courseprofesores', 'showonlinestatus') !== '0',
             'showparticipantslink' => get_config('filter_courseprofesores', 'showparticipantslink') !== '0',
             'displaystyle'         => preg_replace(
                 '/[^a-z0-9_-]/i',
@@ -352,18 +353,20 @@ class text_filter extends \core_filters\text_filter {
             $messagingenabled = !empty($CFG->messaging);
         }
 
+        // Collect all profesor IDs (excluding the current user) once. They are
+        // reused by the unread-messages and last-access queries below.
+        $allprofesorids = [];
+        foreach ($profesores as $rolegroup) {
+            foreach ($rolegroup['users'] as $profesor) {
+                if ($profesor['id'] != $USER->id) {
+                    $allprofesorids[$profesor['id']] = $profesor['id'];
+                }
+            }
+        }
+
         $unreadreceived = [];
         $unreadsent = [];
         if ($messagingenabled && self::$settingscache['showmessagelink']) {
-            $allprofesorids = [];
-            foreach ($profesores as $rolegroup) {
-                foreach ($rolegroup['users'] as $profesor) {
-                    if ($profesor['id'] != $USER->id) {
-                        $allprofesorids[] = $profesor['id'];
-                    }
-                }
-            }
-
             if (!empty($allprofesorids)) {
                 [$insql, $inparams] = $DB->get_in_or_equal($allprofesorids, SQL_PARAMS_NAMED, 'prof');
                 $sql = "SELECT mcm2.userid AS profesorid,
@@ -401,6 +404,20 @@ class text_filter extends \core_filters\text_filter {
                     $unreadsent[$record->profesorid] = (int) $record->count_sent;
                 }
             }
+        }
+
+        // Fetch the last course access of every profesor in a single query,
+        // used to render the online status indicator below.
+        $lastaccesses = [];
+        if (self::$settingscache['showonlinestatus'] && !empty($allprofesorids)) {
+            [$lasql, $laparams] = $DB->get_in_or_equal($allprofesorids, SQL_PARAMS_NAMED, 'la');
+            $lastaccesses = $DB->get_records_sql_menu(
+                "SELECT userid, timeaccess
+                   FROM {user_lastaccess}
+                  WHERE courseid = :courseid
+                    AND userid $lasql",
+                array_merge(['courseid' => $course->id], $laparams)
+            );
         }
 
         foreach ($profesores as $rolegroup) {
@@ -463,6 +480,11 @@ class text_filter extends \core_filters\text_filter {
                 $html .= '<div class="profesor-info">';
                 $html .= '<a href="' . $profileurl->out(false) . '" class="profesor-name">' . s($user->fullname) . '</a>';
 
+                // Online status / last access indicator (not shown on the current user's own card).
+                if (self::$settingscache['showonlinestatus'] && $USER->id != $user->id && !empty($lastaccesses[$user->id])) {
+                    $html .= $this->render_online_status((int) $lastaccesses[$user->id]);
+                }
+
                 $showdetails = (self::$settingscache['showdepartment'] && !empty($user->department)) ||
                     (self::$settingscache['showinstitution'] && !empty($user->institution));
 
@@ -515,6 +537,38 @@ class text_filter extends \core_filters\text_filter {
         }
 
         $html .= '</div>'; // End container.
+        return $html;
+    }
+
+    /**
+     * Render the online status / last access indicator for a profesor.
+     *
+     * A profesor is considered online when their last access to the course
+     * happened within the last 5 minutes, matching the threshold used by
+     * the core Online Users block.
+     *
+     * @param int $timeaccess Timestamp of the profesor's last access to the course.
+     * @return string HTML output.
+     */
+    protected function render_online_status(int $timeaccess): string {
+        $now = time();
+        $isonline = ($timeaccess >= $now - 300);
+
+        if ($isonline) {
+            $statustext  = get_string('online', 'filter_courseprofesores');
+            $statusclass = 'status-online';
+            $icon        = 'fa-circle';
+        } else {
+            $statustext  = get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess));
+            $statusclass = 'status-offline';
+            $icon        = 'fa-clock-o';
+        }
+
+        $html  = '<div class="profesor-status ' . $statusclass . '">';
+        $html .= '<i class="icon fa ' . $icon . ' fa-fw" aria-hidden="true"></i>';
+        $html .= '<span class="profesor-status-text">' . $statustext . '</span>';
+        $html .= '</div>';
+
         return $html;
     }
 }

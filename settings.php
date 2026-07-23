@@ -60,6 +60,13 @@ if ($ADMIN->fulltree) {
     ));
 
     $settings->add(new admin_setting_configcheckbox(
+        'filter_courseprofesores/showonlinestatus',
+        get_string('showonlinestatus', 'filter_courseprofesores'),
+        get_string('showonlinestatus_desc', 'filter_courseprofesores'),
+        1
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
         'filter_courseprofesores/showparticipantslink',
         get_string('showparticipantslink', 'filter_courseprofesores'),
         get_string('showparticipantslink_desc', 'filter_courseprofesores'),

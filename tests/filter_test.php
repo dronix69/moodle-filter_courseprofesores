@@ -38,6 +38,14 @@ final class filter_test extends \advanced_testcase {
         parent::setUp();
         $this->resetAfterTest(true);
         $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), 1, FORMAT_HTML, []);
+
+        // Reset the filter's static caches so config changes and course data
+        // from previous tests do not leak into this one.
+        $reflection = new \ReflectionClass(\filter_courseprofesores\text_filter::class);
+        foreach (['settingscache', 'profesorescache', 'rolecache'] as $propertyname) {
+            $property = $reflection->getProperty($propertyname);
+            $property->setValue(null, $propertyname === 'profesorescache' ? [] : null);
+        }
     }
 
     /**
@@ -273,5 +281,105 @@ final class filter_test extends \advanced_testcase {
 
         $this->assertStringNotContainsString('{courseprofesores}', $result);
         $this->assertStringContainsString('Profesores:  End', $result);
+    }
+
+    /**
+     * Test that the online status is shown for a profesor with recent course access.
+     */
+    public function test_online_status_shown_for_recent_access(): void {
+        global $COURSE, $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        // Simulate a very recent course access by the teacher.
+        $DB->insert_record('user_lastaccess', (object) [
+            'userid' => $teacher->id,
+            'courseid' => $course->id,
+            'timeaccess' => time(),
+        ]);
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString('profesor-status', $result);
+        $this->assertStringContainsString('status-online', $result);
+    }
+
+    /**
+     * Test that the last access time is shown for a profesor who is offline.
+     */
+    public function test_last_access_shown_for_offline_profesor(): void {
+        global $COURSE, $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        // Simulate a course access two hours ago (offline).
+        $DB->insert_record('user_lastaccess', (object) [
+            'userid' => $teacher->id,
+            'courseid' => $course->id,
+            'timeaccess' => time() - 2 * HOURSECS,
+        ]);
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString('profesor-status', $result);
+        $this->assertStringContainsString('status-offline', $result);
+        $this->assertStringNotContainsString('status-online', $result);
+    }
+
+    /**
+     * Test that the online status is hidden when the setting is disabled.
+     */
+    public function test_online_status_hidden_when_disabled(): void {
+        global $COURSE, $DB;
+
+        set_config('showonlinestatus', '0', 'filter_courseprofesores');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $DB->insert_record('user_lastaccess', (object) [
+            'userid' => $teacher->id,
+            'courseid' => $course->id,
+            'timeaccess' => time(),
+        ]);
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringNotContainsString('profesor-status', $result);
     }
 }

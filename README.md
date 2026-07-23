@@ -1,85 +1,106 @@
-# Filtro Profesores del Curso para Moodle 4+
-**Repositorio:** `moodle-filter_courseprofesores`
+# Course Teachers Filter for Moodle 4+
+**Repository:** `moodle-filter_courseprofesores`
 
-Un plugin de filtro para Moodle que reemplaza la etiqueta `{courseprofesores}` con una lista visualmente atractiva de los Profesores del curso, agrupados por rol. Cada tarjeta de profesores muestra su avatar, un enlace directo a su perfil y un enlace para enviar mensajes.
+A filter plugin for Moodle that replaces the `{courseprofesores}` tag with a visually appealing list of the course teachers, grouped by role. Each teacher card shows their avatar, a direct link to their profile, and a link to send them a message.
 
-## Características
+## Features
 
-- **Agrupados por rol**: Los profesores se organizan según su rol (Profesor editor, Profesor, Gestor)
-- **Visualización de avatar**: Muestra la foto de perfil de cada profesor
-- **Enlace al perfil**: Enlace directo a la página de perfil de cada profesor
-- **Enlace de mensajería**: Enlace directo para enviar un mensaje a través del sistema de mensajería de Moodle
-- **Enlace a participantes**: Enlace a la lista completa de participantes del curso
-- **Basado en roles**: Solo muestra usuarios con roles de enseñanza (profesor editor, profesor, gestor)
-- **Consciente del contexto**: Recurre a contextos superiores si no se encuentran profesores a nivel de curso
-- **Cumplimiento de privacidad**: No almacena datos personales (compatible con RGPD)
-- **Bilingüe**: Soporte en inglés y español
+- **Grouped by role**: Teachers are organized according to their role (Editing teacher, Teacher, Manager)
+- **Avatar display**: Shows each teacher's profile picture
+- **Profile link**: Direct link to each teacher's profile page
+- **Messaging link**: Direct link to send a message through Moodle's messaging system
+- **Online status**: Indicates whether the teacher is currently online (green dot) or shows their last access to the course, so students know when to contact them
+- **Card color options**: Customizable accent color (buttons, borders and highlights) and card background color, with predefined palettes: standard blue, vibrant orange, deep blue/violet and hot pink/red
+- **Display styles**: Choose between Cards, List or Compact layouts from the plugin settings
+- **Participants link**: Link to the full course participants list
+- **Role-based**: Only shows users with teaching roles (editing teacher, teacher, manager), configurable from the settings page
+- **Student-friendly visibility**: Enrolled users (such as students) can always see their teachers, even if the view capability has not been propagated to their role
+- **Context-aware**: Falls back to higher contexts if no teachers are found at course level
+- **Privacy compliant**: Does not store personal data (GDPR ready)
+- **Bilingual**: English and Spanish support
 
-## Cómo funciona
+## How it works
 
-Simplemente escribe `{courseprofesores}` en cualquier parte del contenido de tu curso (página, etiqueta, resumen de sección, etc.) y el filtro lo reemplazará con una lista de todos los profesores del curso.
+Simply type `{courseprofesores}` anywhere in your course content (page, label, section summary, etc.) and the filter will replace it with a list of all course teachers.
 
-## Instalación
+## Installation
 
-1. Descarga el plugin o clónalo desde el repositorio:
+1. Download the plugin or clone it from the repository:
    ```bash
    git clone https://github.com/dronix69/filter_courseprofesores.git
    ```
 
-2. Coloca la carpeta `filter_courseprofesores` en el directorio `filter` de tu Moodle:
+2. Place the `filter_courseprofesores` folder into your Moodle `filter` directory:
    ```
-   /ruta/a/moodle/filter/filter_courseprofesores/
+   /path/to/moodle/filter/filter_courseprofesores/
    ```
 
-2. Inicia sesión en Moodle como administrador.
+3. Log in to Moodle as administrator.
 
-3. Ve a **Administración del sitio > Notificaciones** para completar la instalación.
+4. Go to **Site administration > Notifications** to complete the installation.
 
-4. Ve a **Administración del sitio > Extensiones > Filtros > Gestionar filtros**.
+5. Go to **Site administration > Plugins > Filters > Manage filters**.
 
-5. Activa el filtro "Profesores del Curso".
+6. Enable the "Course Teachers" filter.
 
-6. Opcionalmente, configura los ajustes en **Administración del sitio > Extensiones > Filtros > Profesores del Curso**.
+7. Optionally, configure the settings at **Site administration > Plugins > Filters > Course Teachers**.
 
-## Uso
+## Configuration
 
-### Uso básico
+The plugin provides the following settings at **Site administration > Plugins > Filters > Course Teachers**:
 
-Coloca la etiqueta en cualquier parte del contenido de tu curso:
+| Setting | Description |
+|---------|-------------|
+| **Show avatars** | Display teacher avatar images in the teachers list |
+| **Show department** | Display teacher department information if available |
+| **Show institution** | Display teacher institution information if available |
+| **Show message link** | Display a direct link to send a message to the teacher |
+| **Show online status** | Display whether the teacher is online now or their last course access |
+| **Show participants link** | Display a link to the course participants page |
+| **Roles to include** | Select which course roles are displayed as teachers |
+| **Display style** | Choose the layout: Cards, List or Compact |
+| **Accent color** | Accent color for teacher cards and buttons: Standard blue (#0f6cbf), Vibrant orange (#fc6500), Deep blue/violet (#120ef2) or Hot pink/red (#f20e3f) |
+| **Card background color** | Background color for the teacher cards: Theme default, Warm orange (#fc6500), Deep blue (#120ef2) or Hot pink/red (#f20e3f) |
+
+## Usage
+
+### Basic usage
+
+Place the tag anywhere in your course content:
 
 ```
 {courseprofesores}
 ```
 
-### Ejemplo: Página de bienvenida
+### Example: Welcome page
 
 ```
-¡Bienvenido a {coursefullname}!
+Welcome to {coursefullname}!
 
-Tus profesores para este curso son:
+Your teachers for this course are:
 
 {courseprofesores}
 
-Si tienes alguna pregunta, no dudes en contactarlos directamente a través del enlace de mensaje.
+If you have any questions, feel free to contact them directly through the message link.
 ```
 
-### Ejemplo: Descripción del curso
+### Example: Course description
 
 ```
 {courseprofesores}
 
 ---
-Haz clic en el nombre de cualquier profesor para ver su perfil completo, o usa el botón de mensaje para contactarlos directamente.
+Click any teacher's name to view their full profile, or use the message button to contact them directly.
 ```
 
-## Estructura de salida
+## Output structure
 
-El filtro genera HTML con la siguiente estructura:
+The filter generates HTML with the following structure:
 
 ```html
 <div class="filter-courseprofesores-container">
     <div class="profesores-role-group">
-        <h4 class="profesores-role-title">Profesor editor</h4>
+        <h4 class="profesores-role-title">Editing teacher</h4>
         <div class="profesores-list">
             <div class="profesor-card">
                 <div class="profesor-avatar">
@@ -88,11 +109,11 @@ El filtro genera HTML con la siguiente estructura:
                     </a>
                 </div>
                 <div class="profesor-info">
-                    <a href="/user/view.php?id=X&course=Y" class="profesor-name">Nombre Completo</a>
-                    <div class="profesor-details">Departamento, Institución</div>
+                    <a href="/user/view.php?id=X&course=Y" class="profesor-name">Full Name</a>
+                    <div class="profesor-details">Department, Institution</div>
                     <div class="profesor-actions">
                         <a href="/message/index.php?id=X" class="profesor-action-link message-link">
-                            Enviar mensaje
+                            Send message
                         </a>
                     </div>
                 </div>
@@ -101,51 +122,53 @@ El filtro genera HTML con la siguiente estructura:
     </div>
     <div class="profesores-footer">
         <a href="/user/index.php?id=Y" class="participants-link">
-            Ver todos los participantes
+            View all participants
         </a>
     </div>
 </div>
 ```
 
-## Clases CSS para personalización
+## CSS classes for customization
 
-| Clase | Descripción |
+| Class | Description |
 |-------|-------------|
-| `.filter-courseprofesores-container` | Contenedor principal |
-| `.profesores-role-group` | Contenedor de cada grupo de rol |
-| `.profesores-role-title` | Título del rol |
-| `.profesores-list` | Lista de profesores dentro de un rol |
-| `.profesor-card` | Tarjeta individual de profesor |
-| `.profesor-avatar` | Contenedor del avatar |
-| `.profesor-info` | Contenedor de detalles del profesor |
-| `.profesor-name` | Enlace al nombre del profesor |
-| `.profesor-details` | Información de departamento/institución |
-| `.profesor-actions` | Contenedor de enlaces de acción |
-| `.message-link` | Enlace de mensaje |
-| `.profesores-footer` | Pie con enlace a participantes |
-| `.participants-link` | Enlace a la página de participantes |
+| `.filter-courseprofesores-container` | Main container |
+| `.profesores-role-group` | Container for each role group |
+| `.profesores-role-title` | Role title |
+| `.profesores-list` | List of teachers within a role |
+| `.profesor-card` | Individual teacher card |
+| `.profesor-avatar` | Avatar container |
+| `.profesor-info` | Teacher details container |
+| `.profesor-name` | Teacher name link |
+| `.profesor-details` | Department/institution information |
+| `.profesor-actions` | Action links container |
+| `.message-link` | Message link |
+| `.profesores-footer` | Footer with participants link |
+| `.participants-link` | Link to the participants page |
 
-## Seguridad y privacidad
+## Security and privacy
 
-- Todos los datos de usuario se sanitizan usando las funciones integradas de Moodle
-- Solo muestra profesores que el usuario actual tiene permiso para ver
-- Respeta la configuración de privacidad de mensajería de Moodle (`can_message_user()`)
-- No almacena datos personales (compatible con RGPD mediante `null_provider`)
-- Los usuarios eliminados se excluyen automáticamente
-- Usa el sistema de capacidades de Moodle para la visibilidad del enlace de participantes
+- All user data is sanitized using Moodle's built-in functions
+- Only shows teachers that the current user has permission to view
+- Respects Moodle's messaging privacy settings (`can_message_user()`)
+- Does not store personal data (GDPR compliant via `null_provider`)
+- Deleted users are automatically excluded
+- Uses Moodle's capability system for participants link visibility
 
-## Requisitos
+## Requirements
 
-- Moodle 4.5 o superior (versión 2.0.0+, arquitectura con namespace — compatible con Moodle 5.0+)
-- PHP 8.1 o superior
+- Moodle 4.5 or higher (version 2.0.0+, namespaced architecture — compatible with Moodle 5.0+)
+- PHP 8.1 or higher
 
-> **Nota para Moodle 5.0+:** A partir de la versión 2.0.0, el plugin utiliza la nueva arquitectura
-> de filtros con namespace (`\filter_courseprofesores\text_filter`) conforme al estándar MDL-82427,
-> eliminando todas las advertencias de deprecación.
+> **Note for Moodle 5.0+:** Since version 2.0.0, the plugin uses the new namespaced
+> filter architecture (`\filter_courseprofesores\text_filter`) according to the MDL-82427
+> standard, removing all deprecation warnings.
 
-## Licencia
+## License
 
-Este plugin es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la Licencia Pública General GNU publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
+This plugin is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+The full license text is available in the [LICENSE](LICENSE) file included in the plugin root.
 
 ---
-**Repositorio oficial:** [filter_courseprofesores](https://github.com/dronix69/filter_courseprofesores)
+**Official repository:** [filter_courseprofesores](https://github.com/dronix69/filter_courseprofesores)
