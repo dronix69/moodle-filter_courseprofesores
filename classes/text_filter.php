@@ -217,16 +217,20 @@ class text_filter extends \core_filters\text_filter {
 
             if (!isset($grouped[$roleshortname]['users'][$record->id])) {
                 $grouped[$roleshortname]['users'][$record->id] = [
-                    'id'          => $record->id,
-                    'firstname'   => $record->firstname,
-                    'lastname'    => $record->lastname,
-                    'email'       => $record->email,
-                    'picture'     => $record->picture,
-                    'imagealt'    => $record->imagealt,
-                    'username'    => $record->username,
-                    'department'  => $record->department,
-                    'institution' => $record->institution,
-                    'fullname'    => fullname($record),
+                    'id'                => $record->id,
+                    'firstname'         => $record->firstname,
+                    'lastname'          => $record->lastname,
+                    'firstnamephonetic' => $record->firstnamephonetic ?? '',
+                    'lastnamephonetic'  => $record->lastnamephonetic ?? '',
+                    'middlename'        => $record->middlename ?? '',
+                    'alternatename'     => $record->alternatename ?? '',
+                    'email'             => $record->email,
+                    'picture'           => $record->picture,
+                    'imagealt'          => $record->imagealt,
+                    'username'          => $record->username,
+                    'department'        => $record->department,
+                    'institution'       => $record->institution,
+                    'fullname'          => fullname($record),
                 ];
             }
         }
