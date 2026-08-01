@@ -39,7 +39,6 @@ namespace filter_courseprofesores;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \core_filters\text_filter {
-
     /** @var array Request-level cache of profesores per course. */
     protected static array $profesorescache = [];
 
@@ -135,8 +134,10 @@ class text_filter extends \core_filters\text_filter {
         // or any user enrolled in the course. This ensures students can always see
         // their teachers even if the capability hasn't been propagated to the
         // student role due to a previous upgrade gap.
-        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
-            !is_enrolled($coursecontext)) {
+        if (
+            !has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
+            !is_enrolled($coursecontext)
+        ) {
             return str_replace('{courseprofesores}', '', $text);
         }
 

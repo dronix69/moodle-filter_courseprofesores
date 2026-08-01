@@ -16,8 +16,6 @@
 
 namespace filter_courseprofesores;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for the courseprofesores filter.
  *
@@ -37,7 +35,7 @@ final class filter_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-        $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), 1, FORMAT_HTML, []);
+        $this->filter = new \filter_courseprofesores\text_filter(\context_system::instance(), []);
 
         // Reset the filter's static caches so config changes and course data
         // from previous tests do not leak into this one.

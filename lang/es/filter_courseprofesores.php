@@ -24,6 +24,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['accentcolor'] = 'Color de acento';
+$string['accentcolor_desc'] = 'Selecciona el color de acento para las tarjetas de profesores y botones.';
+$string['cardcolor'] = 'Color de fondo de tarjeta';
+$string['cardcolor_blue'] = 'Azul profundo (#120ef2)';
+$string['cardcolor_default'] = 'Predeterminado del tema';
+$string['cardcolor_desc'] = 'Selecciona el color de fondo para las tarjetas de los profesores.';
+$string['cardcolor_orange'] = 'Naranja cálido (#fc6500)';
+$string['cardcolor_pink'] = 'Rosa/rojo intenso (#f20e3f)';
+$string['color_blue'] = 'Azul profundo/violeta (#120ef2)';
+$string['color_default'] = 'Azul estándar (#0f6cbf)';
+$string['color_orange'] = 'Naranja vibrante (#fc6500)';
+$string['color_pink'] = 'Rosa/rojo intenso (#f20e3f)';
 $string['courseprofesores:viewprofesores'] = 'Puede ver la lista de profesores en el curso';
 $string['displaystyle'] = 'Estilo de visualización';
 $string['displaystyle_cards'] = 'Tarjetas';
@@ -58,15 +70,3 @@ $string['unreadmessages_received'] = 'Mensajes no leídos de este profesor';
 $string['unreadmessages_sent'] = 'Tus mensajes pendientes de lectura por el profesor';
 $string['viewparticipants'] = 'Ver todos los participantes';
 $string['viewprofile'] = 'Ver perfil';
-$string['accentcolor'] = 'Color de acento';
-$string['accentcolor_desc'] = 'Selecciona el color de acento para las tarjetas de profesores y botones.';
-$string['color_default'] = 'Azul estándar (#0f6cbf)';
-$string['color_orange'] = 'Naranja vibrante (#fc6500)';
-$string['color_blue'] = 'Azul profundo/violeta (#120ef2)';
-$string['color_pink'] = 'Rosa/rojo intenso (#f20e3f)';
-$string['cardcolor'] = 'Color de fondo de tarjeta';
-$string['cardcolor_desc'] = 'Selecciona el color de fondo para las tarjetas de los profesores.';
-$string['cardcolor_default'] = 'Predeterminado del tema';
-$string['cardcolor_orange'] = 'Naranja cálido (#fc6500)';
-$string['cardcolor_blue'] = 'Azul profundo (#120ef2)';
-$string['cardcolor_pink'] = 'Rosa/rojo intenso (#f20e3f)';

@@ -24,6 +24,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['accentcolor'] = 'Accent color';
+$string['accentcolor_desc'] = 'Select the accent color for teacher cards and buttons.';
+$string['cardcolor'] = 'Card background color';
+$string['cardcolor_blue'] = 'Deep blue (#120ef2)';
+$string['cardcolor_default'] = 'Theme default';
+$string['cardcolor_desc'] = 'Select the background color for the teacher cards.';
+$string['cardcolor_orange'] = 'Warm orange (#fc6500)';
+$string['cardcolor_pink'] = 'Hot pink/red (#f20e3f)';
+$string['color_blue'] = 'Deep blue/violet (#120ef2)';
+$string['color_default'] = 'Standard blue (#0f6cbf)';
+$string['color_orange'] = 'Vibrant orange (#fc6500)';
+$string['color_pink'] = 'Hot pink/red (#f20e3f)';
 $string['courseprofesores:viewprofesores'] = 'Can view the list of teachers in the course';
 $string['displaystyle'] = 'Display style';
 $string['displaystyle_cards'] = 'Cards';
@@ -58,15 +70,3 @@ $string['unreadmessages_received'] = 'Unread messages from this teacher';
 $string['unreadmessages_sent'] = 'Your sent messages pending teacher response';
 $string['viewparticipants'] = 'View all participants';
 $string['viewprofile'] = 'View profile';
-$string['accentcolor'] = 'Accent color';
-$string['accentcolor_desc'] = 'Select the accent color for teacher cards and buttons.';
-$string['color_default'] = 'Standard blue (#0f6cbf)';
-$string['color_orange'] = 'Vibrant orange (#fc6500)';
-$string['color_blue'] = 'Deep blue/violet (#120ef2)';
-$string['color_pink'] = 'Hot pink/red (#f20e3f)';
-$string['cardcolor'] = 'Card background color';
-$string['cardcolor_desc'] = 'Select the background color for the teacher cards.';
-$string['cardcolor_default'] = 'Theme default';
-$string['cardcolor_orange'] = 'Warm orange (#fc6500)';
-$string['cardcolor_blue'] = 'Deep blue (#120ef2)';
-$string['cardcolor_pink'] = 'Hot pink/red (#f20e3f)';
