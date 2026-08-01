@@ -25,7 +25,7 @@ namespace filter_courseprofesores;
  * @covers     \filter_courseprofesores\text_filter
  * @group      filter_courseprofesores
  */
-final class filter_test extends \advanced_testcase {
+class filter_test extends \advanced_testcase {
     /** @var \filter_courseprofesores\text_filter The filter instance. */
     protected $filter;
 
