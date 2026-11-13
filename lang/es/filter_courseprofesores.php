@@ -26,9 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['accentcolor'] = 'Color de acento';
 $string['accentcolor_desc'] = 'Selecciona el color de acento para las tarjetas de profesores y botones.';
-$string['cardcolor'] = 'Color de fondo de tarjeta';
 $string['cardbordercolor'] = 'Color de borde de tarjeta';
 $string['cardbordercolor_desc'] = 'Si se elige un conjunto de colores de fondo de tarjeta personalizado, puedes seleccionar un color de borde para la tarjeta.';
+$string['cardcolor'] = 'Color de fondo de tarjeta';
 $string['cardcolor_blue'] = 'Azul profundo (#120ef2)';
 $string['cardcolor_bordeaux'] = 'Burdeos (#a61e4d)';
 $string['cardcolor_default'] = 'Predeterminado del tema';
