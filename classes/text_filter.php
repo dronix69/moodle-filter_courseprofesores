@@ -109,10 +109,103 @@ class text_filter extends \core_filters\text_filter {
             'onlinestatusformat'   => get_config('filter_courseprofesores', 'onlinestatusformat') === 'relative'
                 ? 'relative'
                 : 'absolute',
+            'customaccentcolor'    => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customaccentcolor'),
+                '#0f6cbf'
+            ),
+            'customcardcolor'      => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardcolor'),
+                '#120ef2'
+            ),
+            'customcardbordercolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbordercolor'),
+                '#0e0bca'
+            ),
+            'customcardtextcolor'  => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardtextcolor'),
+                '#ffffff'
+            ),
+            'customcardtextsecondarycolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardtextsecondarycolor'),
+                '#ffffff'
+            ),
+            'customcardbuttoncolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbuttoncolor'),
+                '#ffffff'
+            ),
+            'customcardbuttonhovercolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbuttonhovercolor'),
+                '#ffffff'
+            ),
+            'customcardshadowcolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardshadowcolor'),
+                '#120ef2'
+            ),
             'rolesincluded'        => $rolesarray,
         ];
     }
 
+    /**
+     * Validate a colour-picker value, returning a safe #rrggbb (or #rgb) string.
+     *
+     * @param mixed  $value   The stored config value.
+     * @param string $default Fallback returned when the value is not a valid hex colour.
+     * @return string A safe hex colour string.
+     */
+    protected static function sanitize_color($value, string $default): string {
+        $value = trim((string) $value);
+        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
+            return $value;
+        }
+        return $default;
+    }
+
+    /**
+     * Convert a #rrggbb (or #rgb) hex colour into an [r, g, b] triplet.
+     *
+     * @param string $hex A hex colour string (already sanitised).
+     * @return array{0: int, 1: int, 2: int} The red, green and blue components.
+     */
+    protected static function hex_to_rgb(string $hex): array {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        return [
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /**
+     * Build an rgba() CSS value from a hex colour and an alpha channel.
+     *
+     * @param string $hex   A hex colour string (already sanitised).
+     * @param float  $alpha The alpha channel, between 0 and 1.
+     * @return string The rgba() CSS value.
+     */
+    protected static function rgba(string $hex, float $alpha): string {
+        [$r, $g, $b] = self::hex_to_rgb($hex);
+        return 'rgba(' . $r . ', ' . $g . ', ' . $b . ', ' . rtrim(rtrim(sprintf('%.2F', $alpha), '0'), '.') . ')';
+    }
+
+    /**
+     * Return a darker shade of the given hex colour, scaling each channel.
+     *
+     * @param string $hex    A hex colour string (already sanitised).
+     * @param float  $factor The multiplier applied to each channel (0-1).
+     * @return string The darkened #rrggbb colour.
+     */
+    protected static function darken_color(string $hex, float $factor): string {
+        [$r, $g, $b] = self::hex_to_rgb($hex);
+        return sprintf(
+            '#%02x%02x%02x',
+            (int) round($r * $factor),
+            (int) round($g * $factor),
+            (int) round($b * $factor)
+        );
+    }
     /**
      * Apply the filter to the given text.
      *
@@ -468,6 +561,12 @@ class text_filter extends \core_filters\text_filter {
             'showparticipants' => false,
         ];
 
+        $customstyle = $this->get_custom_style($accentcolor, $cardcolor);
+        if ($customstyle !== '') {
+            $data['has_customstyle'] = true;
+            $data['customstyle'] = $customstyle;
+        }
+
         if (self::$settingscache['officehours'] !== '') {
             $data['showofficehours'] = true;
             $data['officehours'] = self::$settingscache['officehours'];
@@ -485,6 +584,46 @@ class text_filter extends \core_filters\text_filter {
         }
 
         return $OUTPUT->render_from_template('filter_courseprofesores/profesores', $data);
+    }
+
+    /**
+     * Build the inline CSS custom properties for the custom colour settings.
+     *
+     * The generated values are consumed by the accent-color-custom and
+     * card-color-custom rules in styles.css.
+     *
+     * @param string $accentcolor The selected accent colour option.
+     * @param string $cardcolor   The selected card colour option.
+     * @return string The inline style attribute value, or an empty string when no custom colours are selected.
+     */
+    protected function get_custom_style(string $accentcolor, string $cardcolor): string {
+        $style = [];
+
+        if ($accentcolor === 'custom') {
+            $accent = self::$settingscache['customaccentcolor'];
+            $style[] = '--cp-custom-accent: ' . $accent . ';';
+            $style[] = '--cp-custom-accent-hover: ' . self::darken_color($accent, 0.8) . ';';
+        }
+
+        if ($cardcolor === 'custom') {
+            $style[] = '--cp-custom-card-bg: ' . self::$settingscache['customcardcolor'] . ';';
+            $style[] = '--cp-custom-card-border: ' . self::$settingscache['customcardbordercolor'] . ';';
+            $style[] = '--cp-custom-card-text: ' . self::$settingscache['customcardtextcolor'] . ';';
+            $style[] = '--cp-custom-card-text-secondary: ' .
+                self::rgba(self::$settingscache['customcardtextsecondarycolor'], 0.8) . ';';
+            $style[] = '--cp-custom-card-button: ' .
+                self::rgba(self::$settingscache['customcardbuttoncolor'], 0.15) . ';';
+            $style[] = '--cp-custom-card-button-hover: ' .
+                self::rgba(self::$settingscache['customcardbuttonhovercolor'], 0.3) . ';';
+            $style[] = '--cp-custom-card-shadow: ' .
+                self::rgba(self::$settingscache['customcardshadowcolor'], 0.4) . ';';
+            $style[] = '--cp-custom-card-shadow-hover: ' .
+                self::rgba(self::$settingscache['customcardshadowcolor'], 0.5) . ';';
+            $style[] = '--cp-custom-card-border-hover: ' .
+                self::rgba(self::$settingscache['customcardtextcolor'], 0.5) . ';';
+        }
+
+        return implode(' ', $style);
     }
 
     /**

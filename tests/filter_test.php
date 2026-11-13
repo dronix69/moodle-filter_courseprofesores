@@ -458,4 +458,135 @@ final class filter_test extends \advanced_testcase {
 
         $this->assertStringContainsString('Categorized', $result);
     }
+
+    /**
+     * Test that the custom accent and card colours are injected into the container.
+     */
+    public function test_custom_colors_applied_to_container(): void {
+        global $COURSE;
+
+        set_config('accentcolor', 'custom', 'filter_courseprofesores');
+        set_config('cardcolor', 'custom', 'filter_courseprofesores');
+        set_config('customaccentcolor', '#123456', 'filter_courseprofesores');
+        set_config('customcardcolor', '#abcdef', 'filter_courseprofesores');
+        set_config('customcardbordercolor', '#111111', 'filter_courseprofesores');
+        set_config('customcardtextcolor', '#222222', 'filter_courseprofesores');
+        set_config('customcardtextsecondarycolor', '#333333', 'filter_courseprofesores');
+        set_config('customcardbuttoncolor', '#444444', 'filter_courseprofesores');
+        set_config('customcardbuttonhovercolor', '#555555', 'filter_courseprofesores');
+        set_config('customcardshadowcolor', '#666666', 'filter_courseprofesores');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString('accent-color-custom', $result);
+        $this->assertStringContainsString('card-color-custom', $result);
+        $this->assertStringContainsString('--cp-custom-accent: #123456;', $result);
+        $this->assertStringContainsString('--cp-custom-card-bg: #abcdef;', $result);
+        $this->assertStringContainsString('--cp-custom-card-border: #111111;', $result);
+    }
+
+    /**
+     * Test that no inline style is added when the default colours are used.
+     */
+    public function test_default_colors_do_not_add_inline_style(): void {
+        global $COURSE;
+
+        set_config('accentcolor', 'default', 'filter_courseprofesores');
+        set_config('cardcolor', 'default', 'filter_courseprofesores');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringNotContainsString('--cp-custom-accent', $result);
+        $this->assertStringNotContainsString('--cp-custom-card-bg', $result);
+    }
+
+    /**
+     * Test that the office hours notice is still rendered when configured.
+     */
+    public function test_officehours_rendered(): void {
+        global $COURSE;
+
+        set_config('officehours', 'Monday and Wednesday, 15:00-17:00', 'filter_courseprofesores');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString('profesores-officehours', $result);
+        $this->assertStringContainsString('Monday and Wednesday, 15:00-17:00', $result);
+    }
+
+    /**
+     * Test that the absolute last access format uses the formatted date.
+     */
+    public function test_last_access_absolute_format(): void {
+        global $COURSE, $DB;
+
+        set_config('onlinestatusformat', 'absolute', 'filter_courseprofesores');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $timeaccess = time() - 2 * HOURSECS;
+        $DB->insert_record('user_lastaccess', (object) [
+            'userid' => $teacher->id,
+            'courseid' => $course->id,
+            'timeaccess' => $timeaccess,
+        ]);
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString(userdate($timeaccess), $result);
+    }
 }

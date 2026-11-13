@@ -82,6 +82,13 @@
     --brand-color-hover: #6b257d;
 }
 
+/* Custom accent color. The values are injected inline by the filter from the
+   customaccentcolor setting, with the defaults below used as a fallback. */
+.filter-courseprofesores-container.accent-color-custom {
+    --brand-color: var(--cp-custom-accent, #0f6cbf);
+    --brand-color-hover: var(--cp-custom-accent-hover, #0a58ca);
+}
+
 /* Card background color customizations */
 .filter-courseprofesores-container.card-color-orange .profesor-card,
 .filter-courseprofesores-container.card-color-orange .profesores-officehours {
@@ -225,6 +232,38 @@
 
 .filter-courseprofesores-container.card-color-purple .profesor-name:hover {
     color: rgba(255, 255, 255, 0.8);
+}
+
+/* Custom card colors. The values are injected inline by the filter from the
+   customcard* settings, with the defaults below used as a fallback. */
+.filter-courseprofesores-container.card-color-custom .profesor-card,
+.filter-courseprofesores-container.card-color-custom .profesores-officehours {
+    --card-bg: var(--cp-custom-card-bg, #120ef2);
+    --card-border: var(--cp-custom-card-border, #0e0bca);
+    --text-primary: var(--cp-custom-card-text, #ffffff);
+    --text-secondary: var(--cp-custom-card-text-secondary, rgba(255, 255, 255, 0.8));
+    --btn-bg: var(--cp-custom-card-button, rgba(255, 255, 255, 0.15));
+    --btn-bg-hover: var(--cp-custom-card-button-hover, rgba(255, 255, 255, 0.3));
+    --card-shadow: 0 4px 15px -2px var(--cp-custom-card-shadow, rgba(18, 14, 242, 0.4));
+    --card-shadow-hover: 0 10px 30px -4px var(--cp-custom-card-shadow-hover, rgba(18, 14, 242, 0.5));
+}
+
+.filter-courseprofesores-container.card-color-custom .profesor-card:hover {
+    border-color: var(--cp-custom-card-border-hover, rgba(255, 255, 255, 0.5));
+}
+
+.filter-courseprofesores-container.card-color-custom .profesor-name {
+    color: var(--text-primary);
+}
+
+.filter-courseprofesores-container.card-color-custom .profesor-name:hover {
+    color: var(--text-secondary);
+}
+
+.filter-courseprofesores-container.card-color-custom .profesor-action-link:hover {
+    background-color: var(--btn-bg-hover);
+    border-color: var(--card-border);
+    color: var(--text-primary);
 }
 
 .filter-courseprofesores-container .profesores-role-group {

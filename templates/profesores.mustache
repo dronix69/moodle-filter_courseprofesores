@@ -21,7 +21,8 @@
 
     Example context (json):
     {
-        "containerclass": "filter-courseprofesores-container",
+        "containerclass": "filter-courseprofesores-container accent-color-custom card-color-custom",
+        "customstyle": "--cp-custom-accent: #0f6cbf; --cp-custom-accent-hover: #0a5699;",
         "showofficehours": true,
         "strofficehours": "Office hours",
         "officehours": "Monday and Wednesday, 15:00–17:00",
@@ -61,7 +62,7 @@
         "strviewparticipants": "View all participants"
     }
 }}
-<div class="{{containerclass}}">
+<div class="{{containerclass}}"{{#has_customstyle}} style="{{customstyle}}"{{/has_customstyle}}>
     {{#showofficehours}}
     <div class="profesores-officehours">
         <i class="icon fa fa-clock-o fa-fw" aria-hidden="true"></i>
