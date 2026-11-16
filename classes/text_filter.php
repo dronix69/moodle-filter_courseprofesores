@@ -611,10 +611,8 @@ class text_filter extends \core_filters\text_filter {
             $style[] = '--cp-custom-card-text: ' . self::$settingscache['customcardtextcolor'] . ';';
             $style[] = '--cp-custom-card-text-secondary: ' .
                 self::rgba(self::$settingscache['customcardtextsecondarycolor'], 0.8) . ';';
-            $style[] = '--cp-custom-card-button: ' .
-                self::rgba(self::$settingscache['customcardbuttoncolor'], 0.15) . ';';
-            $style[] = '--cp-custom-card-button-hover: ' .
-                self::rgba(self::$settingscache['customcardbuttonhovercolor'], 0.3) . ';';
+            $style[] = '--cp-custom-card-button: ' . self::$settingscache['customcardbuttoncolor'] . ';';
+            $style[] = '--cp-custom-card-button-hover: ' . self::$settingscache['customcardbuttonhovercolor'] . ';';
             $style[] = '--cp-custom-card-shadow: ' .
                 self::rgba(self::$settingscache['customcardshadowcolor'], 0.4) . ';';
             $style[] = '--cp-custom-card-shadow-hover: ' .

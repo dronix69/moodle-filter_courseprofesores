@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026111300;       // Plugin release date (YYYYMMDDXX).
+$plugin->version   = 2026111601;       // Plugin release date (YYYYMMDDXX).
 $plugin->requires  = 2024100700;       // Requires Moodle 4.5+ (MDL-82427).
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.3.0';          // Added custom accent and card colour pickers.
+$plugin->release   = '2.3.1';          // Fix: custom button color now applied directly (no forced opacity).
 $plugin->dependencies = [];

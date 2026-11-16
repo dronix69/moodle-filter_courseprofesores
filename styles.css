@@ -243,7 +243,7 @@
     --text-primary: var(--cp-custom-card-text, #ffffff);
     --text-secondary: var(--cp-custom-card-text-secondary, rgba(255, 255, 255, 0.8));
     --btn-bg: var(--cp-custom-card-button, rgba(255, 255, 255, 0.15));
-    --btn-bg-hover: var(--cp-custom-card-button-hover, rgba(255, 255, 255, 0.3));
+    --btn-bg-hover: var(--cp-custom-card-button-hover, rgba(255, 255, 255, 0.5));
     --card-shadow: 0 4px 15px -2px var(--cp-custom-card-shadow, rgba(18, 14, 242, 0.4));
     --card-shadow-hover: 0 10px 30px -4px var(--cp-custom-card-shadow-hover, rgba(18, 14, 242, 0.5));
 }
@@ -258,6 +258,10 @@
 
 .filter-courseprofesores-container.card-color-custom .profesor-name:hover {
     color: var(--text-secondary);
+}
+
+.filter-courseprofesores-container.card-color-custom .profesor-action-link {
+    color: var(--text-primary);
 }
 
 .filter-courseprofesores-container.card-color-custom .profesor-action-link:hover {
